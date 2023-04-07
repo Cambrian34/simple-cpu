@@ -1,3 +1,4 @@
+import java.math.BigInteger;
 import java.util.Arrays;
 
 // Press ⇧ twice to open the Search Everywhere dialog and type `show whitespaces`,
@@ -12,10 +13,12 @@ public class Main {
         int b = 2;
         int zero = 0;
         // timer/clock{0,1}{
+        cpu cpu1 = new cpu();
         int clock =0;
         for (int i = 0; i < 3; i++) {
+
             System.out.println(clock + " " +i);
-            int[] out = cpu.cpu2(clock,i);
+            int[] out = cpu1.cpu2(clock,i);
             System.out.println(out[0]);
             if (clock == 0){
                 clock = 1;
@@ -47,6 +50,11 @@ public class Main {
     }
 }
 class cpu{
+    static int[][] imem = {{1,1,1,0,1,1,0,1,0,0,0,0,1,1,1,1},
+            {1,0,1,0,1,1,0,1,0,0,0,0,1,1,1,0},
+            {0,0,1,0,1,1,1,1,0,0,0,0,1,1,0,1}};
+
+    static reg_file regfile = new reg_file(16);
 
     public static int imemtoAluctrl(int[] in, int numberbits){
         int out1 = 0;
@@ -69,9 +77,7 @@ class cpu{
         int[] reg = new int[16];
 
         // eight  dimensional array
-        int[][] imem = {{1,1,1,0,1,1,0,1,0,0,0,0,1,1,1,1},
-                {1,0,1,0,1,1,0,1,0,0,0,0,1,1,1,0},
-                {0,0,1,0,1,1,0,1,0,0,0,0,1,1,0,1}};
+
         //System.out.println("Imem :"+imem[mem_increm][0]);
         int dmem[] = new int[1024];
         int pc = 0;
@@ -91,14 +97,30 @@ class cpu{
         boolean regDst = true;
         //assigns wr to regfile
         int[] wr= new int[4];
-        //wr= (regDst) ? IR[0][1]: IR[20:16];
+        //System.out.println(Arrays.toString(datain_arr(datainmem(IR, mem_increm), 6, 7)));
+        int [] test = new int[16];
+        for (int i = 0; i < IR.length; i++) {
+            test=  datainmem(IR, i);
+        }
+        System.out.println("Test: "+ Arrays.toString(test));
+        //wr= (regDst) ? datain_arr(test,6,8 ): datain_arr(test,7,9 );
+        int wr98 = todecimal(datain_arr(test,6,8 ));
+        System.out.println("WR98: "+ wr98);
+        //wr= mux(datain_arr(test,6,7 ), datain_arr(test,8,9 ), regDst);
+        //System.out.println("WR: "+ Arrays.toString(wr));
 
-        reg_file regfile = new reg_file(16);
-        writetoreg(IR, regfile);
-        int[] readfromreg = readfromreg(IR[0], regfile);
+        writetoreg(IR, regfile,mem_increm);
+        int[] readfromreg = readfromreg( regfile,mem_increm);
         System.out.println("Read from reg: "+ Arrays.toString(readfromreg));
+        /*// tested datain_arr
+        //int[] imem4 = {1,1,1,0,1,1,1,2,0,0,0,0,1,1,1,1};
 
-
+        int[] oiu= datain_arr(test, 0, 3);
+        
+        for (int i = 0; i < oiu.length; i++) {
+            System.out.println("oiu: "+oiu[i]);
+        }*/
+        regfile.printregs();
 
 
         return new int[]{aluResult,pc};
@@ -112,21 +134,99 @@ class cpu{
         return out;
 
     }
-    public static void writetoreg(int[] []imem, reg_file regfile){
-        for (int i = 0; i < imem.length; i++) {
-            regfile.writereg(i, datainmem(imem, i)[i]);
+    // gets specific data from array
+    public static int[] datain_arr(int [] data, int start, int end){
+        int[] out = new int[end-start];
+        int o=0;
+        for (int i = start; i <= end; i++) {
+            if(i== out.length-1 || o <= out.length+1){
+                break;
+            }
+            out[o] = data[i];
+            o++;
+
         }
-    }
-    public static int[] readfromreg(int[] imem, reg_file regfile){
-        int[] out = new int[imem.length];
-        for (int i = 0; i < imem.length; i++) {
-            out[i] = regfile.readreg(i);
-        }
+        System.out.println("Data in arr: "+ Arrays.toString(out));
         return out;
     }
-    public static int combine(){
-        return 0;
+
+    public static void writetoreg(int[] []imem, reg_file regfile,int mem_increm){
+        int byte1 =0;
+        for (int i = 0; i < imem.length; i++) {
+            regfile.writereg(mem_increm, todecimal(datainmem(imem,i)));
+            //writes to regfile
+            //regfile.writereg();
+        }
     }
+    public static int[] readfromreg( reg_file regfile,int mem_increm){
+        int[] out;// new int[16];
+
+        out = tobinary(regfile.readreg(mem_increm));
+        //(out);
+
+        return out;
+    }
+    // converts decimal to binary array
+    public static int[] tobinary(int i) {
+        String o =Integer.toBinaryString(i);
+        int[] out = new int[o.length()];
+        for (int j = 0; j < o.length(); j++) {
+            out[j] = Integer.parseInt(String.valueOf(o.charAt(j)));
+        }
+        System.out.println("Out: "+ Arrays.toString(out));
+
+        return out;
+
+    }
+    /*private static int tobinary(int i) {
+        String o =Integer.toBinaryString(i);
+        //int out = Integer.parseInt(o);
+        System.out.println("Out: "+ o);
+
+        return o.length();
+
+    }*/
+
+    // combines data in array
+    public static int combine(int[] data){
+        int out = 0;
+        String outstr = "";
+        for(int i=0;  i<data.length; i++){
+            outstr += data[i];
+        }
+
+        BigInteger big = new BigInteger(outstr);
+        System.out.println("Outstr: "+ big);
+        out = big.intValue();
+        return out;
+    }
+    // 2x1 multiplexer
+    public int mux(int a, int b, boolean sel){
+        if(sel){
+            return a;
+        }
+        else{
+            return b;
+        }
+    }
+    // 4x1 multiplexer
+    public int mux4(int a, int b, int c, int d, boolean sel1, boolean sel2){
+        if(sel1 && sel2){
+            return a;
+        }
+        else if(sel1 && !sel2){
+            return b;
+        }
+        else if(!sel1 && sel2){
+            return c;
+        }
+        else{
+            return d;
+        }
+    }
+    // converts decimal to binary from array to int
+    //public static
+
 }
 class reg_file{
     public int[] registers;
@@ -149,6 +249,24 @@ class reg_file{
         }
         else{
             registers[regnum] = value;
+        }
+    }
+    // converts decimal to binary array
+    public static int[] tobinary(int i) {
+        String o =Integer.toBinaryString(i);
+        int[] out = new int[o.length()];
+        for (int j = 0; j < o.length(); j++) {
+            out[j] = Integer.parseInt(String.valueOf(o.charAt(j)));
+        }
+        System.out.println("Out: "+ Arrays.toString(out));
+
+        return out;
+
+    }
+    //prints out registers
+    public void printregs(){
+        for (int i = 0; i < registers.length; i++) {
+            System.out.println("Reg "+i+": "+registers[i]+ " "+Arrays.toString(tobinary(registers[i])));
         }
     }
 
