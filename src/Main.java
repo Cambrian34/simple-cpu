@@ -17,9 +17,9 @@ public class Main {
         int clock =0;
         for (int i = 0; i < 3; i++) {
 
-            System.out.println(clock + " " +i);
+            System.out.println("Clock pulse: "+clock);
             int[] out = cpu1.cpu2(clock,i);
-            System.out.println(out[0]);
+            //System.out.println(out[0]);
             if (clock == 0){
                 clock = 1;
             }else{
@@ -86,9 +86,9 @@ class cpu{
         int[][]IR = new int[8][16]; // 8 memory locations with 16 bits
         System.out.println("Memmory increment: "+mem_increm);
         IR = new int[][]{imem[mem_increm],datainmem(imem,mem_increm)};
-        for (int i = 0; i < IR.length; i++) {
+        /*for (int i = 0; i < IR.length; i++) {
             System.out.println("IR"+ (IR[i][i]) +" Data In Mem: "+ Arrays.toString(datainmem(IR, i)));
-        }
+        }*/
 
         int writeData = 0;
         int readData1 = 0;
@@ -97,17 +97,18 @@ class cpu{
         boolean regDst = true;
         //assigns wr to regfile
         int[] wr= new int[4];
+       //wr= (regDst) ? datain_arr(test,6,8 ): datain_arr(test,7,9 );
         //System.out.println(Arrays.toString(datain_arr(datainmem(IR, mem_increm), 6, 7)));
-        int [] test = new int[16];
+        /*int [] test = new int[16];
         for (int i = 0; i < IR.length; i++) {
             test=  datainmem(IR, i);
         }
         System.out.println("Test: "+ Arrays.toString(test));
-        //wr= (regDst) ? datain_arr(test,6,8 ): datain_arr(test,7,9 );
+        //
         int wr98 = todecimal(datain_arr(test,6,8 ));
         System.out.println("WR98: "+ wr98);
         //wr= mux(datain_arr(test,6,7 ), datain_arr(test,8,9 ), regDst);
-        //System.out.println("WR: "+ Arrays.toString(wr));
+        //System.out.println("WR: "+ Arrays.toString(wr));*/
 
         writetoreg(IR, regfile,mem_increm);
         int[] readfromreg = readfromreg( regfile,mem_increm);
@@ -224,8 +225,6 @@ class cpu{
             return d;
         }
     }
-    // converts decimal to binary from array to int
-    //public static
 
 }
 class reg_file{
